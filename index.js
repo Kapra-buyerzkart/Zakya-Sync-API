@@ -19,17 +19,20 @@ admin.initializeApp({
 
 const db = admin.firestore();
 
+// Determine the Firestore collection based on the environment
+const COLLECTION_NAME = process.env.ENV === "production" ? "walkInSales" : "walkInSalesDev";
+
 // Webhook Endpoint to Receive Walk-in Sales from Zakya
 app.post("/zakya/webhook", async (req, res) => {
     try {
         const invoiceData = req.body;
-        console.log("Received webhook:", invoiceData);
+        console.log(`Received webhook in ${COLLECTION_NAME}:`, invoiceData);
 
         if (!invoiceData.invoiceId || !invoiceData.items) {
             return res.status(400).json({ message: "Invalid data received" });
         }
 
-        await db.collection("walkInSales").doc(invoiceData.invoiceId).set(invoiceData);
+        await db.collection(COLLECTION_NAME).doc(invoiceData.invoiceId.toString()).set(invoiceData);
 
         res.status(200).json({ message: "Webhook received successfully" });
     } catch (error) {
